@@ -153,10 +153,10 @@ Repository layout (for `npx skills add`):
 
 ```
 fix-cr-expert-skill/              # GitHub repo root
+├── LICENSE
 ├── README.md
 └── skills/
     └── fix-cr-expert/
-        ├── LICENSE
         ├── SKILL.md              # Main skill definition
         ├── agents/
         │   └── agent.yaml
@@ -178,4 +178,4 @@ Each checklist covers a distinct part of the validation workflow:
 
 ## License
 
-MIT — see [LICENSE](skills/fix-cr-expert/LICENSE).
+MIT — see [LICENSE](LICENSE).
