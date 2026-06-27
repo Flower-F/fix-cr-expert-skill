@@ -5,7 +5,7 @@ Expert skill for AI agents to validate code review findings and fix only confirm
 ## Installation
 
 ```bash
-npx skills add Flower-F/fix-cr-expert-skill
+npx skills add Flower-F/fix-cr-expert-skill --skill fix-cr-expert
 ```
 
 ## Why use
@@ -149,18 +149,22 @@ npx skills add sanyuan0704/sanyuan-skills --path skills/code-review-expert
 
 ## Structure
 
+Repository layout (for `npx skills add`):
+
 ```
-fix-cr-expert/
-├── LICENSE
-├── SKILL.md                      # Main skill definition
-├── agents/
-│   └── agent.yaml                # Agent interface config
+fix-cr-expert-skill/              # GitHub repo root
 ├── README.md
-└── references/
-    ├── fix-decision-checklist.md # Per-item checklist
-    ├── false-positive-patterns.md
-    ├── by-design-signals.md
-    └── fix-vs-defer-boundary.md
+└── skills/
+    └── fix-cr-expert/
+        ├── LICENSE
+        ├── SKILL.md              # Main skill definition
+        ├── agents/
+        │   └── agent.yaml
+        └── references/
+            ├── fix-decision-checklist.md
+            ├── false-positive-patterns.md
+            ├── by-design-signals.md
+            └── fix-vs-defer-boundary.md
 ```
 
 ## References
@@ -174,4 +178,4 @@ Each checklist covers a distinct part of the validation workflow:
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT — see [LICENSE](skills/fix-cr-expert/LICENSE).
