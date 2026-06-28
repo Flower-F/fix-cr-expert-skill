@@ -1,7 +1,0 @@
-interface:
-  display_name: "Fix CR Expert"
-  short_description: "Validate CR findings, decide fix/skip/defer, fix confirmed issues after approval"
-  default_prompt: "Validate code review findings against the codebase, decide fix/skip/defer for each item, and fix only confirmed issues after I confirm."
-
-# Agent-agnostic skill - works with any LLM provider.
-# No provider-specific configuration required.

@@ -1,6 +1,6 @@
 ---
 name: fix-cr-expert
-description: "Expert at validating CR findings and fixing only confirmed issues. Verifies each item against the codebase, outputs fix/skip/defer decisions, implements after user confirmation. Use when triaging CR comments, disputing review findings, or deciding what to fix before merge."
+description: "Validate code review findings and PR review comments before fixing. Use for CodeRabbit, Copilot, CodeQL, human review notes, or AI review output when deciding whether findings are real, false positives, by design, deferred, or worth fixing. Produces FIX/SKIP/DEFER/ASK decisions with evidence and edits only after explicit user confirmation."
 ---
 
 # Fix CR Expert
@@ -15,16 +15,29 @@ If no CR input is provided, ask the user to paste findings or review comments. D
 
 ## Verdict + Fix Decision
 
-Each finding gets a **verdict** (is it real?) and a **fix decision** (should we act?):
+Each finding gets two separate labels:
 
-| Verdict | Meaning | Fix decision |
-|---------|---------|--------------|
-| **VALID** | Confirmed defect or convention violation | **FIX** (by adjusted priority) |
-| **INVALID** | False positive | **SKIP** |
-| **BY_DESIGN** | Intentional tradeoff or accepted pattern | **SKIP** (may suggest a comment) |
-| **DEFER** | Valid but out of scope for this PR | **DEFER** (track follow-up) |
-| **ALREADY_FIXED** | Already addressed in the diff | **SKIP** |
-| **NEEDS_CONTEXT** | Missing product/architecture context | **ASK** (ask user, then decide) |
+1. **Verdict**: what the code facts show.
+2. **Fix decision**: what to do in this PR.
+
+Verdict:
+
+| Verdict | Meaning |
+|---------|---------|
+| **VALID** | Confirmed defect or convention violation |
+| **INVALID** | False positive |
+| **BY_DESIGN** | Intentional tradeoff or accepted pattern |
+| **ALREADY_FIXED** | Already addressed in the diff |
+| **NEEDS_CONTEXT** | Missing product/architecture context |
+
+Fix decision:
+
+| Decision | Meaning | Typical action |
+|----------|---------|----------------|
+| **FIX** | Confirmed issue worth addressing now | Implement by adjusted priority |
+| **SKIP** | No code change | False positive, by design, or already fixed |
+| **DEFER** | Valid issue outside current PR scope | Track follow-up |
+| **ASK** | Needs user/product/architecture input | Ask, then re-decide |
 
 Adjusted priority (for FIX / DEFER only):
 
@@ -42,7 +55,11 @@ Adjusted priority (for FIX / DEFER only):
 
 - Collect CR findings from pasted output, structured review reports, or PR comments.
 - If input is unstructured, normalize into a numbered list (original severity, file, line, description).
-- Use `git status -sb`, `git diff --stat`, and `git diff` to scope the change set.
+- Use `git status -sb` to identify the branch and local state.
+- Determine the comparison scope before evaluating findings:
+  - If the user provides a PR number/link, read the PR diff/comments when available.
+  - If working on a feature branch, identify the base branch and use `git diff <base>...HEAD --stat` plus targeted diffs.
+  - If only working-tree changes are available, use `git diff --stat` and `git diff`, and state that scope limitation in the report.
 - For large diffs (>500 lines), process in batches by module or feature area.
 
 **Edge cases:**
@@ -62,12 +79,12 @@ Before editing code, for each finding:
 4. **Test assumptions**: What did the reviewer assume? Does the code support it?
 5. **Decide**: Assign verdict + fix decision + 1–2 sentences of verifiable evidence.
 
-Load reference checklists for validation heuristics:
+Load references only when they are useful:
 
-- `references/fix-decision-checklist.md` — per-item checklist
-- `references/false-positive-patterns.md` — common false positives
-- `references/by-design-signals.md` — intentional tradeoffs
-- `references/fix-vs-defer-boundary.md` — FIX vs DEFER, ASK prompts, fix principles
+- Always use `references/fix-decision-checklist.md` for the per-item validation shape.
+- Use `references/false-positive-patterns.md` when a reviewer may have missed guards, existing tests, framework behavior, or project constraints.
+- Use `references/by-design-signals.md` when a finding conflicts with documented or established design.
+- Use `references/fix-vs-defer-boundary.md` when a VALID item may be outside PR scope or needs an ASK prompt.
 
 ### 3) Output format
 
@@ -97,7 +114,7 @@ Structure your report as follows:
 ### #1 [orig P1] `path/file.ts:42` — Original title
 
 - **Original CR claim**: …
-- **Verdict**: VALID | INVALID | BY_DESIGN | …
+- **Verdict**: VALID | INVALID | BY_DESIGN | ALREADY_FIXED | NEEDS_CONTEXT
 - **Fix decision**: FIX | SKIP | DEFER | ASK
 - **Adjusted priority**: P0 / P1 / P2 / P3 / —
 - **Evidence**: …
@@ -158,6 +175,17 @@ Please choose an option or provide specific instructions (including whether BY_D
 ```
 
 **Important**: Do NOT implement any changes until the user explicitly confirms. After confirmation, fix only FIX items (or user-specified numbers).
+
+### 6) Implement confirmed fixes
+
+After the user confirms implementation:
+
+1. Restate the finding numbers and priorities that will be fixed.
+2. Edit only confirmed FIX items or user-specified item numbers. Do not touch SKIP/DEFER items.
+3. Keep each code change traceable to a finding number.
+4. Match existing repo patterns; avoid drive-by refactors.
+5. Run the smallest relevant validation for the touched area.
+6. Final response must list fixed items, unchanged SKIP/DEFER/ASK items, and validation results.
 
 ## Decision heuristics
 

@@ -1,6 +1,6 @@
 # Fix CR Expert
 
-Expert skill for AI agents to validate code review findings and fix only confirmed issues. Re-verifies each CR item against the codebase, separates real defects from false positives and by-design choices, and implements fixes only after user confirmation.
+Expert skill for AI agents to validate code review findings and PR review comments before fixing. Re-verifies each item against the codebase, separates real defects from false positives and by-design choices, and implements fixes only after explicit user confirmation.
 
 ## Installation
 
@@ -32,7 +32,8 @@ Pair with `code-review-expert` for a full loop: wide scan → validate → fix o
 ## Features
 
 - **Finding validation** - Re-verify each CR item with code facts and call chains
-- **Verdict classification** - VALID, INVALID, BY_DESIGN, DEFER, ALREADY_FIXED, NEEDS_CONTEXT
+- **PR scope detection** - Determine PR/base diff scope before evaluating findings
+- **Verdict classification** - VALID, INVALID, BY_DESIGN, ALREADY_FIXED, NEEDS_CONTEXT
 - **Fix decisions** - FIX, SKIP, DEFER, ASK for every item
 - **Priority adjustment** - Re-rank P0–P3 after validation
 - **False positive detection** - Common reviewer mistakes and missed context
@@ -121,11 +122,12 @@ npx skills add sanyuan0704/sanyuan-skills --path skills/code-review-expert
 
 ## Workflow
 
-1. **Preflight** - Collect findings and scope changes via `git diff`
+1. **Preflight** - Collect findings and determine PR/base diff scope
 2. **Validate + decide** - Verify each item; assign verdict and fix decision
 3. **Output** - Fix/skip/defer report with evidence
 4. **Synthesis** - Signal-to-noise summary and minimum fix set
 5. **Confirmation** - Ask user before implementing fixes
+6. **Implementation** - Fix only confirmed item numbers and run relevant validation
 
 ## Fix Decisions
 
@@ -143,9 +145,10 @@ npx skills add sanyuan0704/sanyuan-skills --path skills/code-review-expert
 | VALID | Confirmed defect or violation |
 | INVALID | False positive |
 | BY_DESIGN | Intentional design |
-| DEFER | Valid but out of PR scope |
 | ALREADY_FIXED | Already in diff |
 | NEEDS_CONTEXT | Missing decision context |
+
+Out-of-scope valid issues are represented as `Verdict: VALID` plus `Fix decision: DEFER`.
 
 ## Structure
 
@@ -159,7 +162,7 @@ fix-cr-expert-skill/              # GitHub repo root
     └── fix-cr-expert/
         ├── SKILL.md              # Main skill definition
         ├── agents/
-        │   └── agent.yaml
+        │   └── openai.yaml
         └── references/
             ├── fix-decision-checklist.md
             ├── false-positive-patterns.md

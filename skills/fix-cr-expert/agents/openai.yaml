@@ -1,0 +1,7 @@
+interface:
+  display_name: "Fix CR Expert"
+  short_description: "Validate CR findings before fixing"
+  default_prompt: "Use $fix-cr-expert to validate code review findings, decide FIX/SKIP/DEFER/ASK for each item, and wait for my confirmation before editing."
+
+# Agent-agnostic skill - works with any LLM provider.
+# No provider-specific configuration required.
